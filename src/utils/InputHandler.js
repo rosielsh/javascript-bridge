@@ -1,10 +1,12 @@
+import OutputView from "../views/OutputView.js";
+
 class InputHandler {
-  static async repeatUntilValidInput(callback, outputView) {
+  static async repeatUntilValidInput(callback) {
     try {
       return await callback();
     } catch (error) {
-      outputView.printError(error.message);
-      return this.repeatUntilValidInput(callback, outputView);
+      OutputView.printError(error.message);
+      return this.repeatUntilValidInput(callback);
     }
   }
 }

@@ -19,39 +19,36 @@ class GameController {
     const bridge = BridgeMaker.makeBridge(bridgeLength, BridgeRandomNumberGenerator.generate);
     const bridgeGame = new BridgeGame(bridge);
 
+    await this.#processGame(bridgeGame, bridgeLength);
+  }
+
+  async #processGame(bridgeGame, bridgeLength) {
     let moveMap = [];
     let totalCount = 1;
     let isSuccess = false;
-    let isExit = false;
+    let isQuit = false;
 
-    while (!isExit) {
-      // 전체 게임
+    for (let size = 0; size < bridgeLength && !isSuccess && !isQuit; size++) {
       while (!isSuccess) {
-        // 재시도 이내
         const moveDirection = await InputHandler.repeatUntilValidInput(() => this.#getMoveDirection());
         const canGo = bridgeGame.move(moveDirection);
 
         moveMap.push([moveDirection, canGo]);
         this.#outputView.printMap(moveMap);
 
-        // 실패
         if (!canGo) {
-          const retryAnswer = await InputHandler.repeatUntilValidInput(() => this.#getRetry());
-
-          if (retryAnswer === "R") {
-            bridgeGame.retry();
+          if (await this.#handleRetry(bridgeGame)) {
             moveMap = [];
             totalCount++;
             continue;
+          } else {
+            isQuit = true;
+            break;
           }
-
-          isExit = true;
-          break;
         }
 
         if (bridgeGame.isFinish()) {
           isSuccess = true;
-          isExit = true;
           break;
         }
       }
@@ -59,6 +56,17 @@ class GameController {
 
     this.#outputView.printMap(moveMap, true);
     this.#outputView.printResult(isSuccess, totalCount);
+  }
+
+  async #handleRetry(bridgeGame) {
+    const retryAnswer = await InputHandler.repeatUntilValidInput(() => this.#getRetry());
+
+    if (retryAnswer === "R") {
+      bridgeGame.retry();
+      return true;
+    }
+
+    return false;
   }
 
   async #getBridgeLength() {

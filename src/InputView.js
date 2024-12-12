@@ -5,3 +5,5 @@ const InputView = {
 
   readGameCommand() {},
 };
+
+export default InputView;

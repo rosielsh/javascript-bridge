@@ -3,3 +3,5 @@ class BridgeGame {
 
   retry() {}
 }
+
+export default BridgeGame;

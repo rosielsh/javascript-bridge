@@ -17,7 +17,7 @@ class BridgeGame {
       return false;
     }
 
-    if (this.#bridge[this.#step++] === 0) {
+    if (this.#bridge[this.#step] === 0) {
       this.#step++;
       return true;
     }

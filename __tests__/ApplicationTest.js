@@ -1,14 +1,28 @@
 import { MissionUtils } from "@woowacourse/mission-utils";
 import App from "../src/App.js";
-import BridgeMaker from "../src/BridgeMaker.js";
+import BridgeMaker from "../src/models/BridgeMaker.js";
 
-const mockQuestions = (answers) => {
-  MissionUtils.Console.readLine = jest.fn();
-  answers.reduce((acc, input) => {
-    return acc.mockImplementationOnce((_, callback) => {
-      callback(input);
-    });
-  }, MissionUtils.Console.readLine);
+// const mockQuestions = (answers) => {
+//   MissionUtils.Console.readLineAsync = jest.fn();
+//   answers.reduce((acc, input) => {
+//     return acc.mockImplementationOnce((_, callback) => {
+//       callback(input);
+//     });
+//   }, MissionUtils.Console.readLineAsync);
+// };
+
+const mockQuestions = (inputs) => {
+  MissionUtils.Console.readLineAsync = jest.fn();
+
+  MissionUtils.Console.readLineAsync.mockImplementation(() => {
+    const input = inputs.shift();
+
+    if (input === undefined) {
+      throw new Error("NO INPUT");
+    }
+
+    return Promise.resolve(input);
+  });
 };
 
 const mockRandoms = (numbers) => {
@@ -28,14 +42,13 @@ const getOutput = (logSpy) => {
   return [...logSpy.mock.calls].join("");
 };
 
-const runException = (inputs) => {
+const runException = async (inputs) => {
   mockQuestions(inputs);
   const logSpy = getLogSpy();
   const app = new App();
-
-  app.play();
-
-  expectLogContains(getOutput(logSpy), ["[ERROR]"]);
+  await app.play();
+  const output = getOutput(logSpy);
+  expectLogContains(output, ["[ERROR]"]);
 };
 
 const expectLogContains = (received, logs) => {
@@ -47,30 +60,27 @@ const expectLogContains = (received, logs) => {
 const expectBridgeOrder = (received, upside, downside) => {
   const upsideIndex = received.indexOf(upside);
   const downsideIndex = received.indexOf(downside);
-
   expect(upsideIndex).toBeLessThan(downsideIndex);
 };
 
 describe("다리 건너기 테스트", () => {
   test("다리 생성 테스트", () => {
-    const randomNumbers = [1, 0, 0];
+    const randomNumbers = ["1", "0", "0"];
     const mockGenerator = randomNumbers.reduce((acc, number) => {
       return acc.mockReturnValueOnce(number);
     }, jest.fn());
-
     const bridge = BridgeMaker.makeBridge(3, mockGenerator);
     expect(bridge).toEqual(["U", "D", "D"]);
   });
 
-  test("기능 테스트", () => {
+  test("기능 테스트", async () => {
     const logSpy = getLogSpy();
-    mockRandoms([1, 0, 1]);
+    mockRandoms(["1", "0", "1"]);
     mockQuestions(["3", "U", "D", "U"]);
-
     const app = new App();
-    app.play();
-
+    await app.play();
     const log = getOutput(logSpy);
+
     expectLogContains(log, [
       "최종 게임 결과",
       "[ O |   | O ]",
@@ -80,8 +90,7 @@ describe("다리 건너기 테스트", () => {
     ]);
     expectBridgeOrder(log, "[ O |   | O ]", "[   | O |   ]");
   });
-
-  test("예외 테스트", () => {
-    runException(["a"]);
+  test("예외 테스트", async () => {
+    await runException(["a"]);
   });
 });

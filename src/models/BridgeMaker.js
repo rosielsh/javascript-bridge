@@ -4,7 +4,7 @@ const BridgeMaker = {
     const bridge = Array.from({ length: size }, () => 0);
 
     for (let s = 0; s < size; s++) {
-      bridge[s] = generateRandomNumber.generate();
+      bridge[s] = generateRandomNumber();
     }
 
     return bridge;

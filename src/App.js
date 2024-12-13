@@ -1,14 +1,16 @@
-const InputView = require('./InputView');
+import GameController from "./controller/GameController.js";
+import InputView from "./views/InputView.js";
+import OutputView from "./views/OutputView.js";
 
 class App {
-  play() {
-    InputView.readGameStart();
-    InputView.readBridgeSize();
+  async play() {
+    const views = {
+      inputView: InputView,
+      outputView: OutputView,
+    };
+
+    await new GameController(views).start();
   }
 }
 
-const app = new App();
-
-app.play();
-
-module.exports = App;
+export default App;
